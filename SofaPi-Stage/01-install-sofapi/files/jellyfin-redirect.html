@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SofaPi - Jellyfin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #121212;
+    color: #e0e0e0;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .setup {
+    text-align: center;
+    max-width: 600px;
+    width: 90%;
+  }
+  h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+  p  { font-size: 1.2rem; margin-bottom: 2rem; color: #aaa; }
+  input[type="text"] {
+    width: 100%;
+    padding: 18px 22px;
+    font-size: 1.5rem;
+    border: 2px solid #444;
+    border-radius: 12px;
+    background: #1e1e1e;
+    color: #fff;
+    outline: none;
+    margin-bottom: 1.5rem;
+  }
+  input[type="text"]:focus { border-color: #388E3C; }
+  button {
+    padding: 18px 60px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    background: #388E3C;
+    color: #fff;
+    cursor: pointer;
+  }
+  button:hover, button:focus { background: #4CAF50; }
+  .change-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+<div class="setup" id="setup">
+  <h1>Jellyfin Setup</h1>
+  <p>Enter your Jellyfin server address</p>
+  <input type="text" id="url" placeholder="http://192.168.1.100:8096" autofocus>
+  <br>
+  <button onclick="saveAndGo()">Connect</button>
+</div>
+
+<script>
+  var saved = localStorage.getItem('jellyfin_url');
+
+  if (saved && window.location.search.indexOf('setup') === -1) {
+    window.location.replace(saved);
+  }
+
+  if (saved) {
+    document.getElementById('url').value = saved;
+    var p = document.querySelector('.setup p');
+    p.textContent = 'Current: ' + saved;
+    var link = document.createElement('span');
+    link.className = 'change-link';
+    link.textContent = 'Change server address';
+    link.onclick = function() {
+      localStorage.removeItem('jellyfin_url');
+      document.getElementById('url').value = '';
+      p.textContent = 'Enter your Jellyfin server address';
+      link.remove();
+      document.getElementById('url').focus();
+    };
+    document.getElementById('setup').appendChild(link);
+  }
+
+  function saveAndGo() {
+    var url = document.getElementById('url').value.trim();
+    if (!url) return;
+
+    if (url.indexOf('://') === -1) {
+      url = 'http://' + url;
+    }
+
+    if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+      alert('Please enter an http:// or https:// address.');
+      return;
+    }
+
+    localStorage.setItem('jellyfin_url', url);
+    window.location.replace(url);
+  }
+
+  document.getElementById('url').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') saveAndGo();
+  });
+
+  window.addEventListener('load', function() {
+    document.getElementById('url').focus();
+  });
+</script>
+</body>
+</html>
+</html>

@@ -1,0 +1,100 @@
+name: Build SofaPi Image
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            if git describe --exact-match --tags HEAD 2>/dev/null | grep -q '^v'; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            LATEST=$(git tag -l 'v*' --sort=-v:refname | head -1)
+            if [ -z "$LATEST" ]; then
+              NEXT="v0.0.1"
+            else
+              BASE="${LATEST#v}"
+              MAJOR=$(echo "$BASE" | cut -d. -f1)
+              MINOR=$(echo "$BASE" | cut -d. -f2)
+              PATCH=$(echo "$BASE" | cut -d. -f3)
+              PATCH=$((PATCH + 1))
+              NEXT="v${MAJOR}.${MINOR}.${PATCH}"
+            fi
+            echo "tag=$NEXT" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag "$NEXT"
+            git push origin "$NEXT"
+          fi
+
+      - name: Install pi-gen dependencies
+        if: steps.version.outputs.skip != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            coreutils quilt parted qemu-user-static debootstrap zerofree zip \
+            dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file \
+            git curl bc gpg pigz xxd arch-test
+
+      - name: Clone pi-gen
+        if: steps.version.outputs.skip != 'true'
+        run: git clone --depth 1 https://github.com/RPi-Distro/pi-gen.git
+
+      - name: Configure pi-gen
+        if: steps.version.outputs.skip != 'true'
+        run: |
+          cp config pi-gen/
+          rm -rf pi-gen/stage3 pi-gen/stage4 pi-gen/stage5
+
+          mkdir -p pi-gen/stage3
+          cp -r SofaPi-Stage/* pi-gen/stage3/
+
+          touch pi-gen/stage2/SKIP_IMAGES
+          touch pi-gen/stage3/EXPORT_IMAGE
+
+      - name: Build image
+        if: steps.version.outputs.skip != 'true'
+        working-directory: pi-gen
+        run: sudo ./build.sh
+
+      - name: Find image
+        if: steps.version.outputs.skip != 'true'
+        id: image
+        run: |
+          IMG=$(find pi-gen/deploy -name '*.img.xz' | head -1)
+          echo "path=$IMG" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$IMG")" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        if: steps.version.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: SofaPi ${{ steps.version.outputs.tag }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: ${{ steps.image.outputs.path }}
+          generate_release_notes: true

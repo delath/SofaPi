@@ -1,0 +1,14 @@
+# pi-gen build directory (cloned by build.sh)
+pi-gen/
+
+# Build artifacts
+*.img
+*.img.xz
+deploy/
+
+# Editor
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db

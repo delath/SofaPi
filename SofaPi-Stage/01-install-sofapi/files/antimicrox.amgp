@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gamecontroller configversion="19" appversion="3.3">
+    <sets>
+        <set index="1">
+            <dpad index="1">
+                <!-- Up -->
+                <dpadbutton index="1">
+                    <slots>
+                        <slot><code>111</code><mode>keyboard</mode></slot>
+                    </slots>
+                </dpadbutton>
+                <!-- Down -->
+                <dpadbutton index="2">
+                    <slots>
+                        <slot><code>116</code><mode>keyboard</mode></slot>
+                    </slots>
+                </dpadbutton>
+                <!-- Left = Tab -->
+                <dpadbutton index="4">
+                    <slots>
+                        <slot><code>23</code><mode>keyboard</mode></slot>
+                    </slots>
+                </dpadbutton>
+                <!-- Right = Tab -->
+                <dpadbutton index="8">
+                    <slots>
+                        <slot><code>23</code><mode>keyboard</mode></slot>
+                    </slots>
+                </dpadbutton>
+            </dpad>
+            <!-- A / Cross = Enter -->
+            <button index="0">
+                <slots>
+                    <slot><code>36</code><mode>keyboard</mode></slot>
+                </slots>
+            </button>
+            <!-- Guide / PS = Alt+F4 -->
+            <button index="8">
+                <slots>
+                    <slot><code>64</code><mode>keyboard</mode></slot>
+                    <slot><code>70</code><mode>keyboard</mode></slot>
+                </slots>
+            </button>
+        </set>
+    </sets>
+</gamecontroller>

@@ -16,6 +16,7 @@ rm -rf stage3 stage4 stage5
 
 mkdir -p stage3
 cp -r "$SCRIPT_DIR/SofaPi-Stage/"* stage3/
+find stage3 -name "*.sh" -exec chmod +x {} +
 
 touch stage2/SKIP_IMAGES
 touch stage3/EXPORT_IMAGE
